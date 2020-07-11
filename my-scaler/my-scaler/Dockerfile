@@ -8,7 +8,6 @@ RUN dotnet restore
 
 # copy everything else and build app
 COPY . ./
-WORKDIR /app/my-scaler
 RUN dotnet publish -c Release -o out
 
 
