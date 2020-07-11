@@ -1,0 +1,67 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/emadalashi/src/ndc-mlebourne-2020/my-scaler/my-scaler/my-scaler.csproj": {}
+  },
+  "projects": {
+    "/Users/emadalashi/src/ndc-mlebourne-2020/my-scaler/my-scaler/my-scaler.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/emadalashi/src/ndc-mlebourne-2020/my-scaler/my-scaler/my-scaler.csproj",
+        "projectName": "my-scaler",
+        "projectPath": "/Users/emadalashi/src/ndc-mlebourne-2020/my-scaler/my-scaler/my-scaler.csproj",
+        "packagesPath": "/Users/emadalashi/.nuget/packages/",
+        "outputPath": "/Users/emadalashi/src/ndc-mlebourne-2020/my-scaler/my-scaler/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/emadalashi/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "netcoreapp3.1"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netcoreapp3.1": {
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netcoreapp3.1": {
+          "dependencies": {
+            "Grpc.AspNetCore": {
+              "target": "Package",
+              "version": "[2.24.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/3.1.100/RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
