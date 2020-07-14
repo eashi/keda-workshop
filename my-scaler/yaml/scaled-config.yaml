@@ -18,5 +18,5 @@ spec:
     metadata:
       targetSize: "1"
       scalerAddress: my-scaler-service.default.svc.cluster.local:80
-      urlOfService: http://host.minikube.internal:3001/emad
+      urlOfService: http://mockserver.mockserver.svc.cluster.local:1080/emad
       
