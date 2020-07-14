@@ -15,7 +15,7 @@ namespace my_scaler
         private readonly ILogger<GreeterService> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
 
-        private static int _targetSize = 0; //Dangerous, not thread safe!
+        private static int _targetSize = 0; //Dangerous, not thread safe! We need to be static so it can be preserved between requests of New and GetMetrics
         private static string _urlOfService; //Dangerous, not thread safe!
 
         public ExternalScalerService(IHttpClientFactory httpClientFactory, ILogger<GreeterService> logger)
@@ -28,7 +28,6 @@ namespace my_scaler
         // This method is usually called after New, it also depends on the ScaledObject metadata sent to New before, e.g. Target.
         public override Task<GetMetricSpecResponse> GetMetricSpec(ScaledObjectRef scaledObject, ServerCallContext context)
         {
-
             var metricSpecResponse = new GetMetricSpecResponse();
             metricSpecResponse.MetricSpecs.Add(new MetricSpec()
             {
@@ -39,16 +38,25 @@ namespace my_scaler
             return Task.FromResult(metricSpecResponse);
         }
 
-        public override Task<GetMetricsResponse> GetMetrics(GetMetricsRequest request, ServerCallContext context)
+        public override async Task<GetMetricsResponse> GetMetrics(GetMetricsRequest request, ServerCallContext context)
         {
-            //TODO: Get value from _urlOfService
+            _logger.LogInformation($"GetMetrics: about to call service: {_urlOfService}");
+            var httpRequest = new HttpRequestMessage(HttpMethod.Get, _urlOfService);
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.SendAsync(httpRequest);
+            int result = 30;
+            string responseContent = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation($"GetMetrics: response was: {responseContent}");
+
+            int.TryParse(responseContent, out result);
+
             var metricResponse = new GetMetricsResponse();
             metricResponse.MetricValues.Add(new MetricValue
             {
                 MetricName = "mymetric",
-                MetricValue_ = 30
+                MetricValue_ = result
             });
-            return Task.FromResult(metricResponse);
+            return metricResponse;
         }
 
         public override Task<IsActiveResponse> IsActive(ScaledObjectRef scaledObject, ServerCallContext context)
@@ -68,7 +76,7 @@ namespace my_scaler
             {
                 int.TryParse(strTargetSize, out _targetSize);
             }
-
+            _logger.LogInformation($"New called with url: {_urlOfService}");
             var foundUrl = request.Metadata.TryGetValue("urlOfService", out _urlOfService);
             if (!foundUrl)
                 throw new RpcException(new Status(StatusCode.InvalidArgument, "There is no urlOfService parameter"));
