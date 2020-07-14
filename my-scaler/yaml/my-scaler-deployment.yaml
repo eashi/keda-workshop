@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-scaler
+  labels:
+    app: my-scaler
+spec:
+  selector:
+    matchLabels:
+      app: my-scaler
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: my-scaler
+    spec:
+      containers:
+      - image: my-scaler-image
+        name: my-scaler
+        imagePullPolicy: IfNotPresent
+        ports: 
+          - containerPort: 80
+        
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-scaler-service
+spec:
+  selector:
+    app: my-scaler
+  type: ClusterIP
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80

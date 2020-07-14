@@ -15,7 +15,8 @@ namespace my_scaler
         private readonly ILogger<GreeterService> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
 
-        private static int _targetSize = 0; //Dangerous, not thread safe! We need to be static so it can be preserved between requests of New and GetMetrics
+        private readonly string _targetSizeKey = "targetSize";
+        private static int _targetSize = 1; //Dangerous, not thread safe! We need to be static so it can be preserved between requests of New and GetMetrics
         private static string _urlOfService; //Dangerous, not thread safe!
 
         public ExternalScalerService(IHttpClientFactory httpClientFactory, ILogger<GreeterService> logger)
@@ -29,6 +30,7 @@ namespace my_scaler
         public override Task<GetMetricSpecResponse> GetMetricSpec(ScaledObjectRef scaledObject, ServerCallContext context)
         {
             var metricSpecResponse = new GetMetricSpecResponse();
+            _logger.LogInformation($"GetMetricSpec: _targetSize: {_targetSize}");
             metricSpecResponse.MetricSpecs.Add(new MetricSpec()
             {
                 MetricName = "mymetric", //If this scaler handles more than one metric, then this changes. In our case it doesn't.
@@ -72,12 +74,18 @@ namespace my_scaler
         public override Task<global::Google.Protobuf.WellKnownTypes.Empty> New(NewRequest request, ServerCallContext context)
         {
             string strTargetSize;
-            if(request.Metadata.TryGetValue("tergetSize", out strTargetSize))
+            if (request.Metadata.TryGetValue(_targetSizeKey, out strTargetSize))
             {
+                _logger.LogInformation($"New: targetValue string found, and it's :{strTargetSize}");
                 int.TryParse(strTargetSize, out _targetSize);
+                _logger.LogInformation($"New: after assignment _targetSize now is: {_targetSize}");
             }
-            _logger.LogInformation($"New called with url: {_urlOfService}");
+            else
+            {
+                _logger.LogWarning($"New: targetSize is not found in the metadat");
+            }
             var foundUrl = request.Metadata.TryGetValue("urlOfService", out _urlOfService);
+            _logger.LogInformation($"New called with url: {_urlOfService}");
             if (!foundUrl)
                 throw new RpcException(new Status(StatusCode.InvalidArgument, "There is no urlOfService parameter"));
 
