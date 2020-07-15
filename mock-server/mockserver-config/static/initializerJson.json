@@ -1,0 +1,26 @@
+[
+  {
+    "httpRequest": {
+      "path": "/firstExampleExpectation"
+    },
+    "httpResponse": {
+      "body": "some Emad"
+    }
+  },
+  {
+    "httpRequest": {
+      "path": "/secondExampleExpectation"
+    },
+    "httpResponse": {
+      "body": "some Emad 2"
+    }
+  },
+  {
+    "httpRequest": {
+      "path": "/emad"
+    },
+    "httpResponse": {
+      "body": "0"
+    }
+  }
+]
