@@ -46,10 +46,49 @@ External scalers are containers that implement provide gRPC endpoints. So let's 
 1. `dotnet new grpc -n my-scaler`
 2. Add the file `externalscaler.proto` from [this location](https://github.com/kedacore/keda/blob/master/pkg/scalers/externalscaler/externalscaler.proto) to the folder `my-scaler/my-scaler/Protos`
 3. Include the file we just created in the gRPC code generation by adding the following line to the .csproj file: 
-
-`<Protobuf Include="Protos\externalscaler.proto" GrpcServices="Server" />`
-
+```
+<Protobuf Include="Protos\externalscaler.proto" GrpcServices="Server" />`
+```
 4. Run `dotnet build` to generate the base gRPC code
-5. Create a file `ExternalScalerService.cs` under Services folder. You can copy the file from this repo if you want to jump to its final state.
+5. Create a file `ExternalScalerService.cs` under Services folder, we will build it gradually together. Otherwise, you can copy the file from this repo if you want to jump to its final state. 
+6. Add the following line in the startup.cs file in the UseEndpoints section
+```
+endpoints.MapGrpcService<ExternalScalerService>();
+```
+7. Create a Dockerfile file and a .dockerignore file (copy the content from the repo)
+8. Build the image by running `docker build . -t my-scaler-image` or whatever image name you like. 
 
+### Create a Deployment and a Service in Kubernetes for our new scaler
+Let's create a Deployment and a Service to run our scaler and service requests to. From the root of this repo copy the file `my-scaler/yaml/my-scaler-deployment.yaml`
+, and then run:
+```
+kubectl apply -f my-scaler-deployment.yaml
+```
 
+### Create a mock server
+In this step we are going to create a fake http endpoint. Our scaler will query this endpoint, and it will return an integer that we will use as the fake criteria on which we are going to scale our deployment on.
+
+In reality this might be a length of queue of a technology that does not have a built-in support in KEDA, or number of logged in users...etc.
+
+1. In this repo, open the file `mock-server/mockserver-config/static/initializerJson.json` and create a new endpoint that returns an integer in a string format. Let's call it `fake`.
+2. Navigate to the folder `mock-server` and then run the following command to create a configmpa from which the mockserver will read the configuration. 
+```
+helm upgrade --install --namespace mockserver mockserver-config helm/mockserver-config
+```
+2. Create a deployment to run the mockserver itself. run the following:
+```
+helm upgrade --install --namespace mockserver --set app.mountConfigMap=true --set app.mountedConfigMapName=mockserver-config --set app.propertiesFileNamem=mockserver.properties --set app.initializationJsonFileName=initializerJson.json mockserver helm/mockserver
+```
+3. If you want to change the configuration to experiment the scaling up and down, run the following command to restart the mockserve and force it to take the new config values:
+```
+kubectl rollout restart deploy/mockserver -n mockserver
+```
+
+### Create the ScaledObject
+ScaledObject is the kubernetes resource (specific to KEDA) that will tell KEDA to scale our target deployment based on the configuration within. You copy the content of the file from `my-scaler/yaml/scaled-config.yaml`. And then run:
+
+```
+kubectl apply -f scaled-config.yaml 
+```
+
+If everything is setup right, and fake endpoint returns the right value, then watch your target deployment scaling out to many pods.
