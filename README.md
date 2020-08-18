@@ -33,7 +33,9 @@ For other options check KEDA's [deployment documentation](https://keda.sh/docs/1
 
 ### Follow the RabbitMQ Sample
 
-Clone https://github.com/eashi/sample-go-rabbitmq.git. This is a fork of the official RabbitMQ sample, the original can be found [here](https://github.com/kedacore/sample-go-rabbitmq)
+Clone https://github.com/eashi/sample-go-rabbitmq.git, and check out the branch `simple-secret`.
+
+This is a fork of the official RabbitMQ sample, the original can be found [here](https://github.com/kedacore/sample-go-rabbitmq)
 
 Follow the instructions of the sample until you reach "Deploying a RabbitMQ consumer" so we can discuss the `deploy/deploy-consumer.yaml` file.
 
