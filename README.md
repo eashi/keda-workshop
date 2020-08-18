@@ -9,7 +9,7 @@ In this workshop we will learn what [KEDA](https://github/kedacore/keda) is, how
 - [Helm](https://helm.sh/docs/intro/install/)
 - [.NET Core 3.1](https://dotnet.microsoft.com/download/dotnet-core) 
 
-## Workshop Flow
+## Workshop Flow 1 (built in scalers)
 
 ### Install KEDA
 There are several ways to install KEDA, the simplest one is to use the Helm charts.
@@ -30,6 +30,14 @@ kubectl create namespace keda
 helm install keda kedacore/keda --namespace keda
 ```
 For other options check KEDA's [deployment documentation](https://keda.sh/docs/1.4/deploy/).
+
+### Follow the RabbitMQ Sample
+
+Clone https://github.com/eashi/sample-go-rabbitmq.git. This is a fork of the official RabbitMQ sample, the original can be found [here](https://github.com/kedacore/sample-go-rabbitmq)
+
+Follow the instructions of the sample until you reach "Deploying a RabbitMQ consumer" so we can discuss the `deploy/deploy-consumer.yaml` file.
+
+## Workshop Flow 2 (External Scalers)
 
 ### Create a target deployment
 This is the deployment that we target for scaling, it can be the deployment that consumes messages from a queue for example. 
