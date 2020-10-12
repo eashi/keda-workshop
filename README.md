@@ -59,16 +59,20 @@ External scalers are containers that implement provide gRPC endpoints. So let's 
 ```
 4. Run `dotnet build` to generate the base gRPC code
 5. Create a file `ExternalScalerService.cs` under Services folder, we will build it gradually together. Otherwise, you can copy the file from this repo if you want to jump to its final state. 
-6. Add the following line in the Startup.cs file in the UseEndpoints section
+6. Add the following line in the `Startup.cs` file in the `UseEndpoints` section
 ```
 endpoints.MapGrpcService<ExternalScalerService>();
 ```
-7. Add the following line in the Startup.cs file in the `ConfigureServices` method
+7. Add the following line in the `Startup.cs` file in the `ConfigureServices` method
 ```
 services.AddHttpClient();
 ```
-8.Create a Dockerfile file and a .dockerignore file (copy the content from the repo)
-9. Build the image by running `docker build . -t my-scaler-image` or whatever image name you like. 
+8. Create a `Dockerfile` file, and a `.dockerignore` file (**it's important not to forget this one**, you can copy the content from the repo)
+9. Build the image by running:
+```
+docker build . -t my-scaler-image
+``` 
+Feel free to choose the image name you like, however remember to use it all the way down after this point.
 
 ### Create a Deployment and a Service in Kubernetes for our new scaler
 Let's create a Deployment and a Service to run our scaler and service requests to. From the root of this repo copy the file `my-scaler/yaml/my-scaler-deployment.yaml`
@@ -83,15 +87,22 @@ In this step we are going to create a fake http endpoint. Our scaler will query 
 In reality this might be a length of queue of a technology that does not have a built-in support in KEDA, or number of logged in users...etc.
 
 1. In this repo, open the file `mock-server/mockserver-config/static/initializerJson.json` and create a new endpoint that returns an integer in a string format. Let's call it `fake`.
-2. Navigate to the folder `mock-server` and then run the following command to create a configmpa from which the mockserver will read the configuration. 
+
+2. Create the namespace "mockserver":
 ```
-helm upgrade --install --namespace mockserver mockserver-config helm/mockserver-config
+kubectl create namespace mockserver
 ```
-2. Create a deployment to run the mockserver itself. run the following:
+
+3. Navigate to the folder `mock-server` and then run the following command to create a configmpa from which the mockserver will read the configuration. 
 ```
-helm upgrade --install --namespace mockserver --set app.mountConfigMap=true --set app.mountedConfigMapName=mockserver-config --set app.propertiesFileNamem=mockserver.properties --set app.initializationJsonFileName=initializerJson.json mockserver helm/mockserver
+helm upgrade --install --namespace mockserver mockserver-config mockserver-config
 ```
-3. If you want to change the configuration to experiment the scaling up and down, run the following command to restart the mockserve and force it to take the new config values:
+
+4. Create a deployment to run the mockserver itself. run the following:
+```
+helm upgrade --install --namespace mockserver --set app.mountConfigMap=true --set app.mountedConfigMapName=mockserver-config --set app.propertiesFileNamem=mockserver.properties --set app.initializationJsonFileName=initializerJson.json mockserver mockserver
+```
+5. If you want to change the configuration to experiment the scaling up and down, run the following command to restart the mockserve and force it to take the new config values:
 ```
 kubectl rollout restart deploy/mockserver -n mockserver
 ```
