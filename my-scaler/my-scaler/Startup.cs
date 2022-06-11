@@ -32,7 +32,6 @@ namespace my_scaler
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcService<GreeterService>();
                 endpoints.MapGrpcService<ExternalScalerService>();
 
                 endpoints.MapGet("/", async context =>

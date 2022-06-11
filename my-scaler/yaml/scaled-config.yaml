@@ -1,4 +1,4 @@
-apiVersion: keda.k8s.io/v1alpha1
+apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: my-scaledobject
@@ -11,12 +11,17 @@ spec:
   minReplicaCount: 0   # Optional. Default: 0
   maxReplicaCount: 30  # Optional. Default: 100  
   scaleTargetRef:
-    deploymentName: my-dep
-    namespace: default
+    name: my-dep
+    # namespace: default
   triggers:
   - type: external
     metadata:
       targetSize: "1"
       scalerAddress: my-scaler-service.default.svc.cluster.local:80
       urlOfService: http://mockserver.mockserver.svc.cluster.local:1080/fake
-      
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 5
+        
