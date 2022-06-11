@@ -7,7 +7,7 @@ In this workshop we will learn what [KEDA](https://github/kedacore/keda) is, how
 - [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) or Desktop Desktop with Kubernetes enabled 
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) 
 - [Helm](https://helm.sh/docs/intro/install/)
-- [.NET Core 3.1](https://dotnet.microsoft.com/download/dotnet-core) 
+- [.NET Core 6.0](https://dotnet.microsoft.com/download/dotnet-core) 
 
 ## Workshop Flow 1 (built in scalers)
 
