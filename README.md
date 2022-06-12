@@ -52,18 +52,27 @@ To deploy the target app:
 External scalers are containers that implement provide gRPC endpoints. So let's create a gRPC .NET Core app from the 
 
 1. `dotnet new grpc -n my-scaler`
-2. Add the file `externalscaler.proto` from [https://github.com/kedacore/keda/blob/master/pkg/scalers/externalscaler/externalscaler.proto](https://github.com/kedacore/keda/blob/master/pkg/scalers/externalscaler/externalscaler.proto) to the folder `my-scaler/my-scaler/Protos`
+2. Add the file `externalscaler.proto` from [https://github.com/kedacore/keda/blob/main/pkg/scalers/externalscaler/externalscaler.proto](https://github.com/kedacore/keda/blob/main/pkg/scalers/externalscaler/externalscaler.proto) to the folder `my-scaler/Protos`
 3. Include the file we just created in the gRPC code generation by adding the following line to the .csproj file: 
 ```
 <Protobuf Include="Protos\externalscaler.proto" GrpcServices="Server" />
 ```
 4. Run `dotnet build` to generate the base gRPC code
-5. Create a file `ExternalScalerService.cs` under Services folder, we will build it gradually together. Otherwise, you can copy the file from this repo if you want to jump to its final state. 
-6. Add the following line in the `Startup.cs` file in the `UseEndpoints` section
+5. Create a file `ExternalScalerService.cs` under Services folder, we will build it gradually together. To save time, you can copy the file from this repo if you want to jump to its final state. 
+6. Add the following line in the `Program.cs` file:
+```
+app.MapGrpcService<ExternalScalerService>();
+```
+*Note*: If you're using previous .NET Core versions, instead you might need to add this to the `Startup.cs` file in the `UseEndpoints` section:
 ```
 endpoints.MapGrpcService<ExternalScalerService>();
 ```
-7. Add the following line in the `Startup.cs` file in the `ConfigureServices` method
+
+7. Add the following line to th `Program.cs` file:
+```
+builder.Services.AddHttpClient();
+```
+*Note*: if you're using previous .NET Core versions, instead you might need to add this to the `Startup.cs` file in the `ConfigureServices` method
 ```
 services.AddHttpClient();
 ```
@@ -79,6 +88,11 @@ Let's create a Deployment and a Service to run our scaler and service requests t
 , and then run:
 ```
 kubectl apply -f my-scaler-deployment.yaml
+```
+
+*Note*: You can use port forward to troubleshoot the gRPC service and use a tool like BloomRPC to detect if your service is working properly:
+```
+kubectl port-forward service/my-scaler-service 3333:80
 ```
 
 ### Create a mock server
@@ -104,6 +118,8 @@ helm upgrade --install --namespace mockserver --set app.mountConfigMap=true --se
 ```
 5. If you want to change the configuration to experiment the scaling up and down, run the following command to restart the mockserve and force it to take the new config values:
 ```
+helm upgrade --install --namespace mockserver mockserver-config mockserver-config
+
 kubectl rollout restart deploy/mockserver -n mockserver
 ```
 

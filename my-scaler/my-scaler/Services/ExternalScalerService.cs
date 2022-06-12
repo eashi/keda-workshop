@@ -17,8 +17,6 @@ namespace my_scaler
         private readonly IHttpClientFactory _httpClientFactory;
 
         private readonly string _targetSizeKey = "targetSize";
-        private static int _targetSize = 1; //Dangerous, not thread safe! We need to be static so it can be preserved between requests of New and GetMetrics
-        private static string _urlOfService; //Dangerous, not thread safe!
 
         public ExternalScalerService(IHttpClientFactory httpClientFactory, ILogger<ExternalScalerService> logger)
         {
@@ -26,15 +24,35 @@ namespace my_scaler
             _logger = logger;
         }
 
-        // GetMetricsSpec is for constructing the HPA object. If the ScaledObject changes KEDA needs to change the HPA too. 
+        // GetMetricsSpec is for constructing the HPA object. If the ScaledObject changes KEDA needs to change the HPA too.
         public override Task<GetMetricSpecResponse> GetMetricSpec(ScaledObjectRef scaledObject, ServerCallContext context)
         {
+            int targetSize;
+            int defaultTargetSize = 1;
+            string targetSizeInString;
+            if (scaledObject.ScalerMetadata.TryGetValue(_targetSizeKey, out targetSizeInString))
+            {
+                _logger.LogInformation($"GetMetrics: targetValue string found, and it's :{targetSizeInString}");
+                if(int.TryParse(targetSizeInString, out targetSize))
+                {
+                    _logger.LogInformation($"GetMetrics: targetSize is parsed to: {targetSize}");
+                }
+                else 
+                {
+                    _logger.LogWarning($"GetMetrics: targetSize couldn't be parsed to long, will default to: {defaultTargetSize}");
+                    targetSize = defaultTargetSize;
+                }
+            }
+            else
+            {
+                _logger.LogWarning($"GetMetrics: targetSize is not found in the metadat, will default to: {defaultTargetSize}");
+                targetSize = defaultTargetSize;
+            }
             var metricSpecResponse = new GetMetricSpecResponse();
-            _logger.LogInformation($"GetMetricSpec: _targetSize: {_targetSize}");
             metricSpecResponse.MetricSpecs.Add(new MetricSpec()
             {
                 MetricName = _metricNameString, //If this scaler handles more than one metric, then this changes. In our case it doesn't.
-                TargetSize = _targetSize
+                TargetSize = targetSize
             });
 
             return Task.FromResult(metricSpecResponse);
@@ -42,25 +60,15 @@ namespace my_scaler
 
         public override async Task<GetMetricsResponse> GetMetrics(GetMetricsRequest request, ServerCallContext context)
         {
-            string strTargetSize;
-            if (request.ScaledObjectRef.ScalerMetadata.TryGetValue(_targetSizeKey, out strTargetSize))
-            {
-                _logger.LogInformation($"GetMetrics: targetValue string found, and it's :{strTargetSize}");
-                int.TryParse(strTargetSize, out _targetSize);
-                _logger.LogInformation($"GetMetrics: after assignment _targetSize now is: {_targetSize}");
-            }
-            else
-            {
-                _logger.LogWarning($"GetMetrics: targetSize is not found in the metadat");
-            }
-            var foundUrl = request.ScaledObjectRef.ScalerMetadata.TryGetValue("urlOfService", out _urlOfService);
-            _logger.LogInformation($"GetMetrics url: {_urlOfService}");
+            string urlOfService;
+            var foundUrl = request.ScaledObjectRef.ScalerMetadata.TryGetValue("urlOfService", out urlOfService);
+            _logger.LogInformation($"GetMetrics url: {urlOfService}");
             if (!foundUrl)
                 throw new RpcException(new Status(StatusCode.InvalidArgument, "There is no urlOfService parameter"));
 
 
-            _logger.LogInformation($"GetMetrics: about to call service: {_urlOfService}");
-            var httpRequest = new HttpRequestMessage(HttpMethod.Get, _urlOfService);
+            _logger.LogInformation($"GetMetrics: about to call service: {urlOfService}");
+            var httpRequest = new HttpRequestMessage(HttpMethod.Get, urlOfService);
             var client = _httpClientFactory.CreateClient();
             var response = await client.SendAsync(httpRequest);
             int result = 30;
